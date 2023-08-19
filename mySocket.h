@@ -1,23 +1,21 @@
 #pragma once
 #include <winsock2.h>
 #include <WS2tcpip.h>
+#include <vector>
 
 class MySocket
 {
+private:
 	SOCKET sock;			//ソケット番号
 	sockaddr_in addr;		//ソケットとリンクするipやポート番号
-	size_t buffSize;		//ソケットに格納するデータのサイズ
-	char* buff;				//データの中身
 
 	bool finishBind;		//バインドしたか
 
 public:
 	//コンストラクタ
 	//param1: ソケットが格納できるサイズ
-	MySocket(size_t buffSize_)
-		:buffSize(buffSize_)
-		,buff(new char[buffSize_])
-		,finishBind(false)
+	MySocket()
+		:finishBind(false)
 	{
 		sock = socket(AF_INET, SOCK_DGRAM, 0);		//AF_INET...IPv4,　SOCK_DGRAM...ソケットの種類　, 0...プロトコルの指定
 		addr.sin_family = AF_INET;
@@ -99,33 +97,93 @@ public:
 
 	//ソケットの情報を受け取る
 	//return: メンバのソケット
-	SOCKET& getSocket()
+	SOCKET& Socket()
 	{
 		return sock;
 	}
 
-	//ソケットの使用を終了する
-	void Close()
+	//送信
+	//param1: 送るデータのアドレス
+	//param2: 送るデータのサイズ
+	int Send(char* data_, size_t dataSize_)
 	{
-		closesocket(sock);
+		int result = sendto(sock, data_, dataSize_, 0, (SOCKADDR*)&addr, sizeof(addr));
+		if (result == SOCKET_ERROR)
+		{
+			return ResultType::FUNCERR;
+		}
+		else
+		{
+			return ResultType::SUCCESS;
+		}
 	}
+
 
 	//デストラクタ
 	virtual ~MySocket() = 0;
-
 };
-
-
-class MSock_Send : public MySocket
+MySocket::~MySocket()
 {
-	MSock_Send(size_t buffSize_)
+	closesocket(sock);
+}
+
+//受信用ソケット
+class MSockReceive
+{
+	fd_set fds, readfds;
+	std::vector<MySocket*> sockets;
+	int timeCount;
+
+public:
+	enum ResultType
 	{
+		SUCCESS = 0,	//成功
+		NONSOCKET,		//ソケットが準備されていない
+		TIMEOUT,		//タイムアウト
+		FUNCERR,		//外部関数のエラー
+	};
+
+	//コンストラクタ
+	MSockReceive()
+	{
+		FD_ZERO(&readfds);
+	}
+
+	//ソケットの追加
+	//param1: 追加するソケットのポインタ
+	void AddSocket(MySocket* mysock_)
+	{
+		sockets.push_back(mysock_);
+		FD_SET(mysock_->Socket(), &readfds);
+	}
+
+	//受信
+	//param1: 制限時間
+	int Receive(timeval& waitLimit_)
+	{
+		// 読み込み用fd_setの初期化
+		// selectが毎回内容を上書きしてしまうので、毎回初期化します
+		memcpy(&fds, &readfds, sizeof(fd_set));
+
+		// fdsに設定されたソケットが読み込み可能になるまで待ちます
+		timeCount = select(0, &fds, NULL, NULL, &waitLimit_);
+
+		// タイムアウトの場合にselectは0を返します
+		if (timeCount == 0) {
+			return ResultType::TIMEOUT;
+		}
+
+
+		for (auto& socket : sockets)
+		{
+			// ソケットに読み込み可能データがある場合
+			if (FD_ISSET(socket->Socket(), &fds)) {
+				// sock1からデータを受信して表示します
+				memset(socket->Buff(), 0, sizeof(buf));
+				recv(sock1, buf, sizeof(buf), 0);
+				printf("%s\n", buf);
+			}
+		}
 
 	}
-};
-
-
-class MSock_Receive : public MySocket
-{
-
 };
