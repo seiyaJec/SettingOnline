@@ -10,7 +10,7 @@ class MySocket
 {
 private:
 	SOCKET sock;			//ソケット番号
-	sockaddr_in addr;		//ソケットとリンクするipやポート番号
+	SOCKADDR_IN addr;		//ソケットとリンクするipやポート番号
 	bool finishBind;		//バインドしたか
 	bool finishSetReceive;	//受信用の設定が終了したか
 	int	 uKey;				//ソケットごとに割り当てられるユニークキー
@@ -178,14 +178,6 @@ public:
 	//param2: 送るデータのサイズ
 	int Send(const char* data_, size_t dataSize_)
 	{
-		if (finishBind == false)
-		{
-			if (this->Bind() != ResultType::SUCCESS)
-			{
-				return ResultType::BINDERR;
-			}
-		}
-
 		int result = sendto(sock, data_, dataSize_, 0, (SOCKADDR*)&addr, sizeof(addr));
 		if (result == SOCKET_ERROR)
 		{
@@ -253,7 +245,7 @@ public:
 		//ソケットごとに読み込み可能なデータを確認
 		for (auto& rsock : *receiveSockets)
 		{
-			if (FD_ISSET(rsock.second->sock, &fds)) {
+			if (FD_ISSET(rsock.second->sock, fds)) {
 				memset(rsock.second->receiveBuff, 0, rsock.second->receiveBuffSize);
 				recv(rsock.second->sock, rsock.second->receiveBuff, rsock.second->receiveBuffSize, 0);
 			}

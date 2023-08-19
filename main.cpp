@@ -34,27 +34,26 @@ int main()
 	WSAStartup(MAKEWORD(2, 0), &wsaData);
 
 	MySocket sock;
-#if false
-	sock.SetIpAdress(L"222.227.190.48");
+#if true
+	cout << sock.SetIpAdress(L"222.227.190.48");
 	sock.SetPortNum(55555);
 
 	string text;
 	cout << "‘—M‚·‚é•¶Žš—ñ‚ð“ü—Í‚µ‚Ä‚­‚¾‚³‚¢F";
 	cin >> text;
 
-	sock.Send(text.c_str(),text.size());
+	cout << sock.Send(text.c_str(),text.size());
 #else
 	int result;
 	auto portmap = MyPortMapping::CreateAndInitialize(55555, L"192.168.0.11");
-	result = sock.SetPortNum(55555);
-	result = sock.SetReceive(48);
+	cout << sock.SetPortNum(55555);
+	cout << endl << sock.SetReceive(48);
 	timeval timeout;
-	timeout.tv_sec = 20;
+	timeout.tv_sec = 3;
 	timeout.tv_usec = 0;
 	result = MySocket::Receive(timeout);
 	const char* data = sock.ReadReceive();
 	cout << data;
 #endif
-
 	WSACleanup();
 }
