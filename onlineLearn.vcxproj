@@ -128,8 +128,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="myNetwork.cpp" />
-    <ClCompile Include="portMapping_s.cpp" />
+    <ClCompile Include="mySocket.cpp" />
+    <ClCompile Include="myPortMapping.cpp" />
     <ClCompile Include="receive.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -151,8 +151,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="mySocket.h" />
-    <ClInclude Include="portMapping_s.h" />
-    <ClInclude Include="myNetwork.h" />
+    <ClInclude Include="myPortMapping.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

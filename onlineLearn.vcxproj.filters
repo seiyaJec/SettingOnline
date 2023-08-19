@@ -30,18 +30,15 @@
     <ClCompile Include="send.cpp">
       <Filter>テストファイル</Filter>
     </ClCompile>
-    <ClCompile Include="portMapping_s.cpp">
+    <ClCompile Include="myPortMapping.cpp">
       <Filter>リソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="myNetwork.cpp">
+    <ClCompile Include="mySocket.cpp">
       <Filter>リソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="portMapping_s.h">
-      <Filter>リソース ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="myNetwork.h">
+    <ClInclude Include="myPortMapping.h">
       <Filter>リソース ファイル</Filter>
     </ClInclude>
     <ClInclude Include="mySocket.h">

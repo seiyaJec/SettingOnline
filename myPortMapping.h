@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <memory>
 #include <natupnp.h>
 #include <objbase.h>
 #include <oleauto.h>
@@ -7,7 +8,7 @@
 #pragma comment(lib, "wsock32.lib")
 #pragma comment(lib,"ole32.lib")
 #pragma comment(lib,"oleaut32.lib")
-class PortMapping
+class MyPortMapping
 {
 	IUPnPNAT* nat;			//Nat情報
 	IStaticPortMappingCollection* maps;	//ポートマッピングのリスト
@@ -19,6 +20,8 @@ class PortMapping
 	int port;				//マッピングしたIPのどのポートに送信されるか
 	static bool created;	//すでに生成されているか
 
+	MyPortMapping() {};
+
 public:
 	/// <summary>
 	/// ポートマッピングの生成、初期化
@@ -26,14 +29,14 @@ public:
 	/// <param name="port_">使用するポート番号</param>
 	/// <param name="local_">マッピングするローカルipアドレス</param>
 	/// <returns>生成されたインスタンスへのポインタ</returns>
-	static PortMapping* CreateAndInitialize(int port_, std::wstring local_)
+	static std::shared_ptr<MyPortMapping> CreateAndInitialize(int port_, const std::wstring& local_)
 	{
 		if (created == true)
 		{
 			return nullptr;
 		}
 
-		PortMapping* ins = new PortMapping();
+		auto ins = std::shared_ptr<MyPortMapping>(new MyPortMapping());
 		CoInitialize(nullptr);//comの初期化
 		CoCreateInstance(CLSID_UPnPNAT, nullptr, CLSCTX_ALL, IID_IUPnPNAT, reinterpret_cast<void**>(&(ins->nat)));	//インスタンスの取得
 		ins->nat->get_StaticPortMappingCollection(&(ins->maps));//ポートマッピングのリスト取得
@@ -52,7 +55,7 @@ public:
 	/// 終了処理
 	/// </summary>
 	/// <param name="ptr_">インスタンスへのポインタ</param>
-	static void Finalize(PortMapping* ptr_)
+	static void Finalize(MyPortMapping* ptr_)
 	{
 		delete ptr_;
 	}
@@ -60,7 +63,7 @@ public:
 	/// <summary>
 	/// デストラクタ
 	/// </summary>
-	~PortMapping()
+	~MyPortMapping()
 	{
 		maps->Remove(port, udp);//リストから削除
 		SysFreeString(name);
