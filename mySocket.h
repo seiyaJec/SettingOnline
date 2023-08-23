@@ -1,4 +1,5 @@
 #pragma once
+#define _WINSOCKAPI_
 #include <winsock2.h>
 #include <WS2tcpip.h>
 #include <map>
@@ -16,6 +17,10 @@ private:
 	int	 uKey;				//ソケットごとに割り当てられるユニークキー
 	char* receiveBuff;		//受信用のデータ格納変数
 	size_t  receiveBuffSize;	//受信時に受け取れる最大容量
+
+	char* senderIP;							//送信者のIPアドレス
+	sockaddr_in senderAddr;						//送信者の情報
+	int senderAddrSize;							//送信者のパケットサイズ
 
 	static bool*   finishInitialize;	//初期化されているか
 	static fd_set* fds;					//受信したデータを入れる変数
@@ -99,6 +104,8 @@ public:
 		,finishSetReceive(false)
 		,receiveBuff(nullptr)
 		,receiveBuffSize(0)
+		,senderAddrSize(sizeof(senderAddr))
+		,senderIP(new char[20])
 	{
 		InitializeFds();
 		sock = socket(AF_INET, SOCK_DGRAM, 0);		//AF_INET...IPv4,　SOCK_DGRAM...ソケットの種類　, 0...プロトコルの指定
@@ -220,17 +227,20 @@ public:
 
 
 	//受信
-	//param1: 制限時間
-	//param2: 受け取るデータの容量
+	//param1: 制限時間（秒）
+	//param2: 制限時間（マイクロ秒）
 	//return: 実行結果
-	static int Receive(timeval& waitLimit_)
+	static int Receive(long sec_, long usec_)
 	{
 		// 読み込み用fd_setの初期化
 		// selectが毎回内容を上書きしてしまうので、毎回初期化します
 		memcpy(fds, readfds, sizeof(fd_set));
 
+		timeval waitLimit;
+		waitLimit.tv_sec = sec_;
+		waitLimit.tv_usec = usec_;
 		// fdsに設定されたソケットが読み込み可能になるまで待ちます
-		int result = select(0, fds, NULL, NULL, &waitLimit_);
+		int result = select(0, fds, NULL, NULL, &waitLimit);
 
 		// タイムアウトの場合
 		if (result == 0) {
@@ -247,7 +257,7 @@ public:
 		{
 			if (FD_ISSET(rsock.second->sock, fds)) {
 				memset(rsock.second->receiveBuff, 0, rsock.second->receiveBuffSize);
-				recv(rsock.second->sock, rsock.second->receiveBuff, rsock.second->receiveBuffSize, 0);
+				recvfrom(rsock.second->sock, rsock.second->receiveBuff, rsock.second->receiveBuffSize, 0, (sockaddr*)&(rsock.second->senderAddr), &(rsock.second->senderAddrSize));
 			}
 		}
 
@@ -260,11 +270,24 @@ public:
 		return receiveBuff;
 	}
 
+	//送信者のIPアドレスを取得する
+	const char* GetSenderIP()
+	{
+		return inet_ntop(AF_INET, &senderAddr.sin_addr, senderIP, 20);
+	}
+
+	//送信者のポート番号を取得する
+	USHORT GetSenderPORT()
+	{
+		return senderAddr.sin_port;
+	}
+
 	//デストラクタ
 	~MySocket()
 	{
 		FinalizeFds();
 		delete[] receiveBuff;
+		delete[] senderIP;
 		closesocket(sock);
 	}
 };

@@ -45,15 +45,14 @@ int main()
 	sock.Send(text.c_str(),text.size());
 #else
 	int result;
-	auto portmap = MyPortMapping::CreateAndInitialize(55555, L"192.168.0.11");
-	cout << sock.SetPortNum(55555);
-	cout << endl << sock.SetReceive(48);
-	timeval timeout;
-	timeout.tv_sec = 20;
-	timeout.tv_usec = 0;
-	result = MySocket::Receive(timeout);
-	const char* data = sock.ReadReceive();
-	cout << data;
+	auto portmap = MyPortMapping::CreateAndInitialize();
+	portmap->Add(55555);
+	wcout << portmap->getLocal();
+	//sock.SetPortNum(55555);
+	//sock.SetReceive(48);
+	//result = MySocket::Receive(20,0);
+	//const char* data = sock.ReadReceive();
+	//cout << data << "\nip:" << sock.GetSenderIP() << "\nport:" << ntohs(sock.GetSenderPORT());
 #endif
 	WSACleanup();
 }

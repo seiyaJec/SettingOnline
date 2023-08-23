@@ -1,2 +1,2 @@
 #include "myPortMapping.h"
-bool MyPortMapping::created = false;
+bool* MyPortMapping::created = nullptr;
